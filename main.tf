@@ -1,12 +1,45 @@
-## Providers Example
-provider "azurerm" {
-  version = "3.32.0"
-  features {}
+terraform {
+  required_providers {
+    docker = {
+      source  = "kreuzwerker/docker"
+      version = "~> 2.23.1"
+    }
+  }
 }
 
-### AWS
+provider "docker" {}
 
-provider "aws" {
-  version = "4.40.0"
-  region = "us-east-1"
+resource "docker_image" "nodered_image" {
+  name = "nodered/node-red:latest"
 }
+
+resource "random_string" "random" {
+  count   = 2
+  length  = 4
+  special = false
+  upper   = false
+}
+
+resource "docker_container" "nodered_container" {
+  count = 2
+  name  = join("-", ["nodered", random_string.random[count.index].result])
+  image = docker_image.nodered_image.latest
+  ports {
+    internal = 1880
+    # external = 1880
+  }
+}
+
+
+
+
+output "container-name" {
+  value = docker_container.nodered_container[*].name
+  description = "The name of the container"
+}
+
+output "IP-Address" {
+  value = [for i in docker_container.nodered_container[*]: join(":",[i.ip_address],i.ports[*]["external"])]
+  description = "The IP address and external port of the container"
+}
+
