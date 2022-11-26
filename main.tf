@@ -1,8 +1,39 @@
 terraform {
   required_providers {
+<<<<<<< HEAD
     aws = {
       source  = "hashicorp/aws"
       version = "~> 4.16"
+=======
+<<<<<<< HEAD
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 4.16"
+    }
+  }
+
+  required_version = ">= 1.2.0"
+}
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_instance" "app_server" {
+  ami                    = "ami-0b0dcb5067f052a63"
+  instance_type          = "t2.micro"
+  vpc_security_group_ids = ["sg-07f6d680860393307"]
+  subnet_id              = "subnet-072c908573b68f831"
+
+  tags = {
+    Name = "ExampleAppServerInstance"
+  }
+}
+=======
+    docker = {
+      source  = "kreuzwerker/docker"
+      version = "~> 2.23.1"
+>>>>>>> f912fe203f79b0b896e0195ac2db326c5a6c5913
     }
   }
 }
@@ -68,6 +99,7 @@ resource "aws_subnet" "private_1" {
     }   
 }
 
+<<<<<<< HEAD
 resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.main.id
 
@@ -75,3 +107,6 @@ resource "aws_internet_gateway" "gw" {
     Name = "main"
   }
 }
+=======
+>>>>>>> 6f476520c594032853895dd9fb99b490abc6c29c
+>>>>>>> f912fe203f79b0b896e0195ac2db326c5a6c5913
