@@ -1,45 +1,77 @@
 terraform {
   required_providers {
-    docker = {
-      source  = "kreuzwerker/docker"
-      version = "~> 2.23.1"
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 4.16"
     }
   }
 }
 
-provider "docker" {}
-
-resource "docker_image" "nodered_image" {
-  name = "nodered/node-red:latest"
+# Configure the AWS Provider
+provider "aws" {
+  region = "us-east-1"
 }
 
-resource "random_string" "random" {
-  count   = 2
-  length  = 4
-  special = false
-  upper   = false
-}
+# Configure the AWS VPC
+resource "aws_vpc" "main" {
+  cidr_block       = "10.0.0.0/16"
+  instance_tenancy = "default"
 
-resource "docker_container" "nodered_container" {
-  count = 2
-  name  = join("-", ["nodered", random_string.random[count.index].result])
-  image = docker_image.nodered_image.latest
-  ports {
-    internal = 1880
-    # external = 1880
+  tags = {
+    Name = "main-vpc"
   }
 }
 
-
-
-
-output "container-name" {
-  value = docker_container.nodered_container[*].name
-  description = "The name of the container"
+# Configure 2 public subnets
+resource "aws_subnet" "public_1" {
+    vpc_id = "aws_vpc.vpc.id"
+    cidr_block = "10.0.1/24"
+    availability_zone = "us-east-1a"
+    map_public_ip_on_launch = true
+    
+    tag = {
+        Name = "Public_Subnet_1"
+    }   
 }
 
-output "IP-Address" {
-  value = [for i in docker_container.nodered_container[*]: join(":",[i.ip_address],i.ports[*]["external"])]
-  description = "The IP address and external port of the container"
+resource "aws_subnet" "public_2" {
+    vpc_id = "aws_vpc.vpc.id"
+    cidr_block = "10.0.2/24"
+    availability_zone = "us-east-1b"
+    map_public_ip_on_launch = true
+    
+    tag = {
+        Name = "Public_Subnet_2"
+    }   
 }
 
+# Configure 2 private subnets
+resource "aws_subnet" "private_1" {
+    vpc_id = "aws_vpc.vpc.id"
+    cidr_block = "10.0.3/24"
+    availability_zone = "us-east-1a"
+    map_public_ip_on_launch = false
+    
+    tag = {
+        Name = "Private_Subnet_1"
+    }   
+}
+
+resource "aws_subnet" "private_1" {
+    vpc_id = "aws_vpc.vpc.id"
+    cidr_block = "10.0.3/24"
+    availability_zone = "us-east-1a"
+    map_public_ip_on_launch = false
+    
+    tag = {
+        Name = "Private_Subnet_1"
+    }   
+}
+
+resource "aws_internet_gateway" "gw" {
+  vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "main"
+  }
+}
